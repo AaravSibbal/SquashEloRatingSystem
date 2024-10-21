@@ -31,6 +31,9 @@ func (ms *Matches) New(playerA, playerB, playerWon *Player) *Match {
 		when: &time,
 	}
 
+	playerA.EloRating = GetNewElo(playerA, m)
+	playerB.EloRating = GetNewElo(playerB, m)
+
 	return m
 }
 
