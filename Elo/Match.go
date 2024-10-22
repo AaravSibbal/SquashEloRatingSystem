@@ -8,11 +8,11 @@ import (
 )
 
 type Match struct {
-	id *uuid.UUID
-	playerA    *Player
-	playerB    *Player
-	playerWon  *Player
-	when       *time.Time
+	Id *uuid.UUID
+	PlayerA    *Player
+	PlayerB    *Player
+	PlayerWon  *Player
+	When       *time.Time
 }
 
 type Matches struct {
@@ -24,11 +24,11 @@ func (ms *Matches) New(playerA, playerB, playerWon *Player) *Match {
 	id := uuid.New()
 	
 	m := &Match{
-		id: &id,
-		playerA: playerA,
-		playerB: playerB,
-		playerWon: playerWon,
-		when: &time,
+		Id: &id,
+		PlayerA: playerA,
+		PlayerB: playerB,
+		PlayerWon: playerWon,
+		When: &time,
 	}
 
 	playerA.EloRating = GetNewElo(playerA, m)
@@ -62,7 +62,7 @@ func (ms *Matches) RemoveMatch(id *uuid.UUID) (bool, error){
 
 func (ms *Matches) GetMatchIdx(id *uuid.UUID) int {
 	for idx,match := range ms.matches {
-		if match.id == id {
+		if match.Id == id {
 			return idx
 		}
 	}

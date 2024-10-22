@@ -1,6 +1,8 @@
 package bot
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -10,15 +12,20 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var BotToken string
+type Bot struct {
+	BotToken string
+	Db *sql.DB
+	Ctx *context.Context
+}
 
-func Run() {
-	discord, err := discordgo.New("Bot " + BotToken)
+
+func (b *Bot) Run() {
+	discord, err := discordgo.New("Bot " + b.BotToken)
 	if err != nil {
 		log.Fatal("There was an error creating a discord bot")
 	}
 
-	discord.AddHandler(newMessage)
+	discord.AddHandler(b.newMessage)
 
 	discord.Open()
 	defer discord.Close()
@@ -29,7 +36,7 @@ func Run() {
 	<-c
 }
 
-func newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
+func (b *Bot) newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 	fmt.Println("we are getting here")
 	// if message.Author.ID == discord.State.User.ID {
 	// 	return

@@ -1,6 +1,9 @@
 package bot
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 func getHelpMessage() string {
 	fmt.Println("got the help message")
@@ -9,4 +12,10 @@ func getHelpMessage() string {
 
 func ping() string {
 	return "pong"
+}
+
+func addPlayer(discordStmt string) string {
+	arr := strings.Split(discordStmt, " ")
+	fmt.Printf("arr: %v", arr)
+	return "haven't implemented yet"
 }

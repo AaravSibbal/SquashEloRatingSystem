@@ -1,8 +1,13 @@
 package elo
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/google/uuid"
+)
 
 type Player struct {
+	Player_ID 	*uuid.UUID
 	Name         string
 	EloRating    int
 	Wins         int

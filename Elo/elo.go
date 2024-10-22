@@ -6,17 +6,17 @@ func GetNewElo(p *Player, match *Match) int {
 	var opponent *Player
 	var player *Player
 
-	if p.Equals(match.playerA) {
-		player = match.playerA
-		opponent = match.playerB
+	if p.Equals(match.PlayerA) {
+		player = match.PlayerA
+		opponent = match.PlayerB
 	} else {
-		player = match.playerB
-		opponent = match.playerA
+		player = match.PlayerB
+		opponent = match.PlayerA
 	}
 
 	expectedScore := CalculateExpectedScore(player.EloRating, opponent.EloRating)
 
-	if player.Equals(match.playerWon){
+	if player.Equals(match.PlayerWon){
 		return CalculateElo(player.EloRating, expectedScore, true)
 	} else {
 		return CalculateElo(player.EloRating, expectedScore, false)
