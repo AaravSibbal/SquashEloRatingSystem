@@ -3,11 +3,11 @@ package psql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	elo "github.com/AaravSibbal/SqashEloRatingSystem/Elo"
-	"github.com/google/uuid"
 )
 
 func InsertPlayer(db *sql.DB, ctx *context.Context, player *elo.Player) error {
@@ -38,54 +38,21 @@ func InsertPlayer(db *sql.DB, ctx *context.Context, player *elo.Player) error {
 	return nil
 }
 
-func InsertMatch(db *sql.DB, ctx *context.Context, match *elo.Match) error {
+func InsertMatch(tx *sql.Tx, ctx *context.Context, match *elo.Match) error {
 	
-	playerNameQueryStmt := `SELECT player_ID from player where name = ?`
 	insertMatchStmt := `INSERT INTO MATCH 
-	(player_a_ID, player_b_ID, player_won_ID)
-	 VALUES ($1, $2, $3)`
+	(player_a_ID, player_b_ID, player_won_ID, player_a_rating, player_b_rating)
+	 VALUES ($1, $2, $3, $4, $5)`
 	
 	newCtx, cancel := context.WithTimeout(*ctx, 5*time.Second)
 	defer cancel()
 	
-	tx, err := db.BeginTx(newCtx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 
-	var playerAID uuid.UUID
-	var playerBID uuid.UUID
-	var playerWonID uuid.UUID
-
-	// making sure that player A and B are in the db and getting their uuid
-	playerARow := tx.QueryRowContext(newCtx, playerNameQueryStmt, match.PlayerA.Name)
-	playerBRow := tx.QueryRowContext(newCtx, playerNameQueryStmt, match.PlayerB.Name)
-
-	err = playerARow.Scan(playerAID)
-	if err == sql.ErrNoRows {
-		return err
-	} else if err != nil {
-		return err
-	}
-
-	err = playerBRow.Scan(playerBID)
-	if err == sql.ErrNoRows {
-		return err
-	} else if err != nil {
-		return err
-	}
-
-	fmt.Printf("PlayerA UUID: %v,\nPlayerB UUID: %v", playerAID, playerBID)
-
-	if match.PlayerWon.Equals(match.PlayerA){
-		playerWonID = playerAID
-	} else{
-		playerWonID = playerBID
-	}
-
-	results, err := db.ExecContext(newCtx, insertMatchStmt, playerAID, playerBID, playerWonID)
-	if err == context.DeadlineExceeded {
+	results, err := tx.ExecContext(newCtx, insertMatchStmt, 
+		match.PlayerA.Player_ID.String(), match.PlayerB.Player_ID.String(), 
+		match.PlayerWon.Player_ID.String(), match.PlayerARating, match.PlayerBRating)
+	
+		if err == context.DeadlineExceeded {
 		return err
 	} else if err != nil {
 		return err
@@ -96,6 +63,69 @@ func InsertMatch(db *sql.DB, ctx *context.Context, match *elo.Match) error {
 		return err
 	} else if row != 1 {
 		return fmt.Errorf("expected 1 row to be affected but rows affected were %v", row)
+	}
+
+	return nil
+}
+
+func GetPlayer(db *sql.DB, ctx *context.Context, name string) (*elo.Player, error) {
+	sqlStmt := `Select * FROM player WHERE name=$1`
+
+	newCtx, cancel := context.WithTimeout(*ctx, 5*time.Second)
+	defer cancel()
+
+	row := db.QueryRowContext(newCtx, sqlStmt, name)
+
+	player := &elo.Player{}
+
+	err := row.Scan(player)
+	
+	if err != nil {
+		return nil, err	
+	}
+
+	return player, nil
+}
+
+func GetPlayerWithTX(tx *sql.Tx, ctx *context.Context, name string) (*elo.Player, error) {
+	sqlStmt := `Select * FROM player WHERE name=$1`
+
+	newCtx, cancel := context.WithTimeout(*ctx, 5*time.Second)
+	defer cancel()
+
+	row := tx.QueryRowContext(newCtx, sqlStmt, name)
+
+	player := &elo.Player{}
+
+	err := row.Scan(player)
+	
+	if err != nil {
+		return nil, err	
+	}
+
+	return player, nil
+}
+
+func UpdatePlayerWithTx(tx *sql.Tx, ctx *context.Context, player *elo.Player) error {
+	sqlStmt :=	`UPDATE player 
+	SET elo_rating=$1, wins=$2, losses=$3, draws=$4, total_matches=$5
+	WHERE player_ID=$6`
+
+	newCtx, cancel := context.WithTimeout(*ctx, 5*time.Second)
+	defer cancel()
+
+	result, err := tx.ExecContext(newCtx, sqlStmt, player.EloRating, player.Wins, player.Losses, player.Draws, player.TotalMatches, player.Player_ID.String())
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected != 1 {
+		return errors.New("more rows were affected than expected")
 	}
 
 	return nil

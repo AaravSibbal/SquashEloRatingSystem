@@ -12,6 +12,8 @@ type Match struct {
 	PlayerA    *Player
 	PlayerB    *Player
 	PlayerWon  *Player
+	PlayerARating int
+	PlayerBRating int
 	When       *time.Time
 }
 
@@ -19,7 +21,7 @@ type Matches struct {
 	matches []*Match
 }
 
-func (ms *Matches) New(playerA, playerB, playerWon *Player) *Match {
+func (ms Matches) New(playerA, playerB, playerWon *Player) *Match {
 	time := time.Now()
 	id := uuid.New()
 	
@@ -28,11 +30,21 @@ func (ms *Matches) New(playerA, playerB, playerWon *Player) *Match {
 		PlayerA: playerA,
 		PlayerB: playerB,
 		PlayerWon: playerWon,
+		PlayerARating: playerA.EloRating,
+		PlayerBRating: playerB.EloRating,
 		When: &time,
 	}
 
-	playerA.EloRating = GetNewElo(playerA, m)
-	playerB.EloRating = GetNewElo(playerB, m)
+	
+	// this step is important because otherwise elo would change while it is getting calculated
+	playerANewRating := GetNewElo(playerA, m)
+	playerBNewRating := GetNewElo(playerB, m)
+
+	playerA.EloRating = playerANewRating
+	playerB.EloRating = playerBNewRating
+
+	playerA.UpdatePlayer(m)
+	playerB.UpdatePlayer(m)
 
 	return m
 }

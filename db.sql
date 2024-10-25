@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS match(
             REFERENCES player(player_ID)
 );
 
-
+ALTER TABLE match ADD player_a_rating INT NOT NULL;
 
 	-- id *uuid.UUID
 	-- playerA    *Player

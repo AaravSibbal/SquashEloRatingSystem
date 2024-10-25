@@ -1,6 +1,7 @@
 package elo
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -21,11 +22,31 @@ func (player *Player) Equals(p *Player) bool {
 	return result == 0
 }
 
+func (player *Player) UpdatePlayer(match *Match){
+	result:= player.DidPlayerWin(match)
+
+	if result {
+		player.Wins++
+	} else {
+		player.Losses++
+	}
+	player.TotalMatches++
+}
+
+func (player *Player) DidPlayerWin(match *Match) bool {
+	return player.Equals(match.PlayerWon)
+}
+
+func (player *Player) String() string {
+	return fmt.Sprintf("Name: %s\nElo Rating: %d\nWins: %d\nLosses: %d\nTotal Matches: %d\n", 
+	player.Name, player.EloRating, player.Wins, player.Losses, player.TotalMatches)
+}
+
 type Players struct {
 	players map[string]*Player
 }
 
-func (pls *Players) New(name string) *Player {
+func (pls Players) New(name string) *Player {
 	p := &Player{
 		Name:         name,
 		EloRating:    400,

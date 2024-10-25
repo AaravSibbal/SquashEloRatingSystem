@@ -40,7 +40,7 @@ func CalculateElo(eloRating int, expectedScore float64, didWin bool) int {
 	
 	newElo := eloRating + int(math.Ceil((KFactor * (actualScore - expectedScore))))
 	
-	return newElo
+	return minEloCheck(newElo)
 }
 
 func CalculateKFactor(eloRating int) float64 {
@@ -56,4 +56,12 @@ func CalculateKFactor(eloRating int) float64 {
 		return 16
 	}
 	
+}
+
+func minEloCheck(newElo int) int {
+	if newElo < 200 {
+		return 200
+	}
+
+	return newElo
 }

@@ -37,18 +37,19 @@ func (b *Bot) Run() {
 }
 
 func (b *Bot) newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
-	fmt.Println("we are getting here")
-	// if message.Author.ID == discord.State.User.ID {
-	// 	return
-	// }
-
 
 	fmt.Printf("Message Content: %s\n", message.Content)
 	switch {
-	case strings.Contains(message.Content, "!help"):
-		discord.ChannelMessageSend(message.ChannelID, getHelpMessage())
-	case strings.Contains(message.Content, "!ping"):
-		discord.ChannelMessageSend(message.ChannelID, ping())
+	case strings.HasPrefix(message.Content, "!help"):
+		discord.ChannelMessageSend(message.ChannelID, b.getHelpMessage())
+
+	case strings.HasPrefix(message.Content, "!ping"):
+		discord.ChannelMessageSend(message.ChannelID, b.ping())
+
+	case strings.HasPrefix(message.Content, "!addPlayer"):
+		discord.ChannelMessageSend(message.ChannelID, b.addPlayer(message.Mentions))
+	case strings.HasPrefix(message.Content, "!addMatch"):
+		discord.ChannelMessageSend(message.ChannelID, b.addMatch(message.Mentions))
 	// default:
 	// 	discord.ChannelMessageSend(message.ChannelID, "something went wrong")
 	}
