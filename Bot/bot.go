@@ -49,9 +49,10 @@ func (b *Bot) newMessage(discord *discordgo.Session, message *discordgo.MessageC
 	case strings.HasPrefix(message.Content, "!addPlayer"):
 		discord.ChannelMessageSend(message.ChannelID, b.addPlayer(message.Mentions))
 	case strings.HasPrefix(message.Content, "!addMatch"):
-		discord.ChannelMessageSend(message.ChannelID, b.addMatch(message.Mentions))
+		discord.ChannelMessageSend(message.ChannelID, b.addMatch(message.Mentions, message.Content))
+	case strings.HasPrefix(message.Content, "!stat"):
+		discord.ChannelMessageSend(message.ChannelID, b.stat(message.Mentions))
 	// default:
 	// 	discord.ChannelMessageSend(message.ChannelID, "something went wrong")
 	}
-
 }

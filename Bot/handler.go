@@ -18,8 +18,9 @@ func (b *Bot) ping() string {
 }
 
 func (b *Bot) addPlayer(users []*discordgo.User) string {
-	if len(users) != 1 {
-		return fmt.Sprintf("Error: expected 1 users got %d", len(users))
+
+	if len(users) != 2 {
+		return fmt.Sprintf("Error: expected 2 users got %d", len(users))
 	}
 
 	user := users[0]
@@ -38,9 +39,10 @@ func (b *Bot) addPlayer(users []*discordgo.User) string {
 	return fmt.Sprintf("Player: %s, was added successfully", user.GlobalName)
 }
 
-func (b *Bot) addMatch(users []*discordgo.User) string {
-	if len(users) != 3 {
-		return fmt.Sprintf("Error: expected 3 mentions got %d", len(users))
+func (b *Bot) addMatch(users []*discordgo.User, message string) string {
+	playerAUser, playerBUser, playerWonUser, err := b.GetPlayers(users, message)
+	if err != nil {
+		return err.Error()
 	}
 
 	tx, err := b.Db.BeginTx(*b.Ctx, nil)
@@ -49,28 +51,19 @@ func (b *Bot) addMatch(users []*discordgo.User) string {
 		return "there was some trouble with the db try again later"
 	}
 
-	playerAName := users[0].GlobalName
-	playerBName := users[1].GlobalName
-	playerWonName := users[2].GlobalName
-
-	if playerAName != playerWonName && playerBName != playerWonName {
-		return "Error: player won name does not match playerA or playerB"
-
-	}
-
-	playerA, err := psql.GetPlayerWithTX(tx, b.Ctx, playerAName)
+	playerA, err := psql.GetPlayerWithTX(tx, b.Ctx, playerAUser.GlobalName)
 	if err != nil {
 		tx.Rollback()
-		return fmt.Sprintf("Player: %s, not found add them to the db first", playerAName)
+		return fmt.Sprintf("Player: %s, not found add them to the db first", playerAUser.GlobalName)
 	}
 
-	playerB, err := psql.GetPlayerWithTX(tx, b.Ctx, playerBName)
+	playerB, err := psql.GetPlayerWithTX(tx, b.Ctx, playerBUser.GlobalName)
 	if err != nil {
 		tx.Rollback()
-		return fmt.Sprintf("Player: %s, not found add them to the db first", playerAName)
+		return fmt.Sprintf("Player: %s, not found add them to the db first", playerBUser.GlobalName)
 	}
 
-	playerWon := b.GetPlayerWon(playerA, playerB, playerWonName)
+	playerWon := b.GetPlayerWon(playerA, playerB, playerWonUser.GlobalName)
 
 	match := elo.Matches.New(elo.Matches{}, playerA, playerB, playerWon)
 
@@ -81,4 +74,22 @@ func (b *Bot) addMatch(users []*discordgo.User) string {
 	}		
 	tx.Commit()
 	return "Added the match successfully"
+}
+
+func (b *Bot) stat(users []*discordgo.User) string {
+	if len(users) < 1 {
+		return "need at least 1 user in order get the stat"
+	}
+
+	resultStr := ""
+
+	for _, user := range users {
+		resultStr += b.getPlayerStat(user)
+	}
+
+	return resultStr 
+}
+
+func (b *Bot) getPlayerStat(user *discordgo.User) string {
+	
 }

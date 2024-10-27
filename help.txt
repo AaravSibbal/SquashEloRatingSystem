@@ -1,0 +1,18 @@
+Commands: 
+
+- !addPlayer @player 
+(always mention the player as it will ensure that the name is always correct)
+
+- !addMatch @playerA @playerB @playerWon
+(make sure that player won either same as PlayerA or PlayerB)
+
+- !help
+(lists the commands available)
+
+- !ping
+(resonds back with a pong to check if the bot is still running)
+
+!stat @player
+(responds with player elo, wins, losses, total matches)
+
+!
