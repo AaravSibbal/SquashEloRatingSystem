@@ -12,7 +12,8 @@ Commands:
 - !ping
 (resonds back with a pong to check if the bot is still running)
 
-!stat @player
-(responds with player elo, wins, losses, total matches)
+!stat @player1
+(responds with player(s) elo, wins, losses, total matches)
 
-!
+!stat @player1 @player2 ...
+(you can add as many players you wont that are in the server)

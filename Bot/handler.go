@@ -9,8 +9,26 @@ import (
 )
 
 func (b *Bot) getHelpMessage() string {
-	fmt.Println("got the help message")
-	return `help is not implemented yet`
+	return	`Commands: 
+
+- !addPlayer @player 
+(always mention the player as it will ensure that the name is always correct)
+
+- !addMatch @playerA @playerB @playerWon
+(make sure that player won either same as PlayerA or PlayerB)
+
+- !help
+(lists the commands available)
+
+- !ping
+(resonds back with a pong to check if the bot is still running)
+
+!stat @player1
+(responds with player(s) elo, wins, losses, total matches)
+
+!stat @player1 @player2 ...
+(you can add as many players you wont that are in the server)`
+
 }
 
 func (b *Bot) ping() string {
@@ -91,5 +109,14 @@ func (b *Bot) stat(users []*discordgo.User) string {
 }
 
 func (b *Bot) getPlayerStat(user *discordgo.User) string {
-	
+	if user == nil {
+		return "user is not defined\n"
+	}
+
+	player, err:= psql.GetPlayer(b.Db, b.Ctx, user.GlobalName)
+	if err != nil {
+		return fmt.Sprintf("There was some trouble getting %s from the db", player.Name)
+	}
+
+	return player.String()
 }
