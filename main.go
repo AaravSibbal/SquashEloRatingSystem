@@ -14,12 +14,14 @@ import (
 	func main() {
 	envFile, err := godotenv.Read(".env")
 	if err != nil {
-		fmt.Errorf("there was an error reading the .env file,\n\n %w", err)
-		return
+		
+		fmt.Printf("%v", err)
+		return	
 	}	
 	
 	db, err := getDbConnection(envFile)
 	if err != nil {
+		fmt.Printf("%v",err)
 		return
 	}
 	
