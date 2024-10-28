@@ -26,24 +26,4 @@ CREATE TABLE IF NOT EXISTS match(
 );
 
 ALTER TABLE match ADD player_a_rating INT NOT NULL;
-
-	-- id *uuid.UUID
-	-- playerA    *Player
-	-- playerB    *Player
-	-- playerWon  *Player
-	-- when       *time.Time
-	
-    -- Name         string
-	-- EloRating    int
-	-- Wins         int
-	-- Losses       int
-	-- Draws        int
-	-- TotalMatches int
-
-
-CREATE TABLE IF NOT EXISTS blogs(
-    blog_ID UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
-    title VARCHAR(1023) NOT NULL UNIQUE,
-    fileHandle VARCHAR(2047) NOT NULL UNIQUE,
-    created timestamptz NOT NULL DEFAULT now()
-);
+ALTER TABLE match ADD player_b_rating INT NOT NULL;
