@@ -24,6 +24,7 @@ import (
 		fmt.Printf("%v",err)
 		return
 	}
+	defer db.Close()
 	
 	
 	botToken := envFile["BOT_TOKEN"]
