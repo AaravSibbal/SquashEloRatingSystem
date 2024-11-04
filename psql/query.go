@@ -78,7 +78,7 @@ func GetPlayer(db *sql.DB, ctx *context.Context, name string) (*elo.Player, erro
 
 	player := &elo.Player{}
 
-	err := row.Scan(player)
+	err := row.Scan(player.Player_ID, player.Name, player.EloRating, player.Wins, player.Losses, player.Draws, player.TotalMatches)
 	
 	if err != nil {
 		return nil, err	
@@ -97,7 +97,7 @@ func GetPlayerWithTX(tx *sql.Tx, ctx *context.Context, name string) (*elo.Player
 
 	player := &elo.Player{}
 
-	err := row.Scan(player)
+	err := row.Scan(player.Player_ID, player.Name, player.EloRating, player.Wins, player.Losses, player.Draws, player.TotalMatches)
 	
 	if err != nil {
 		return nil, err	
