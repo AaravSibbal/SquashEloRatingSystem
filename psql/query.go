@@ -41,8 +41,9 @@ func InsertPlayer(db *sql.DB, ctx *context.Context, player *elo.Player) error {
 func InsertMatch(tx *sql.Tx, ctx *context.Context, match *elo.Match) error {
 	
 	insertMatchStmt := `INSERT INTO MATCH 
-	(player_a_ID, player_b_ID, player_won_ID, player_a_rating, player_b_rating)
-	 VALUES ($1, $2, $3, $4, $5)`
+	(player_a_ID, player_b_ID, player_won_ID, player_a_rating, player_b_rating
+	player_a_name, player_b_name)
+	 VALUES ($1, $2, $3, $4, $5, $6, $7)`
 	
 	newCtx, cancel := context.WithTimeout(*ctx, 5*time.Second)
 	defer cancel()
@@ -50,7 +51,8 @@ func InsertMatch(tx *sql.Tx, ctx *context.Context, match *elo.Match) error {
 
 	results, err := tx.ExecContext(newCtx, insertMatchStmt, 
 		match.PlayerA.Player_ID.String(), match.PlayerB.Player_ID.String(), 
-		match.PlayerWon.Player_ID.String(), match.PlayerARating, match.PlayerBRating)
+		match.PlayerWon.Player_ID.String(), match.PlayerARating, match.PlayerBRating,
+		match.PlayerAName, match.PlayerBName)
 	
 		if err == context.DeadlineExceeded {
 		return err

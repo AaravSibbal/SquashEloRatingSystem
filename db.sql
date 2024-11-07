@@ -27,3 +27,5 @@ CREATE TABLE IF NOT EXISTS match(
 
 ALTER TABLE match ADD player_a_rating INT NOT NULL;
 ALTER TABLE match ADD player_b_rating INT NOT NULL;
+ALTER TABLE match ADD player_b_name VARCHAR(255) NOT NULL;
+ALTER TABLE match ADD player_a_name VARCHAR(255) NOT NULL;

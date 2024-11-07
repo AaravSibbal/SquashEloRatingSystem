@@ -36,6 +36,7 @@ func (b *Bot) Run() {
 	<-c
 }
 
+// TODO: add beginner, intermidiate, advance option to the addPlayer
 func (b *Bot) newMessage(discord *discordgo.Session, message *discordgo.MessageCreate) {
 
 	fmt.Printf("Message Content: %s\n", message.Content)

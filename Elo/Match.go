@@ -14,6 +14,8 @@ type Match struct {
 	PlayerWon  *Player
 	PlayerARating int
 	PlayerBRating int
+	PlayerAName string
+	PlayerBName string
 	When       *time.Time
 }
 
@@ -32,6 +34,8 @@ func (ms Matches) New(playerA, playerB, playerWon *Player) *Match {
 		PlayerWon: playerWon,
 		PlayerARating: playerA.EloRating,
 		PlayerBRating: playerB.EloRating,
+		PlayerAName: playerA.Name,
+		PlayerBName: playerB.Name,
 		When: &time,
 	}
 
