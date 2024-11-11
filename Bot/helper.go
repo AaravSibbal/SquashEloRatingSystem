@@ -2,6 +2,7 @@ package bot
 
 import (
 	"errors"
+	"fmt"
 	// "fmt"
 	"strings"
 
@@ -40,7 +41,8 @@ func (b *Bot) GetPlayers(users []*discordgo.User, message string)(*discordgo.Use
 	arr := strings.Split(message, " ")
 	
 	if len(arr) != 4 {
-		return nil, nil, nil, errors.New("ya did something wrong")
+		// fmt.Printf("Arr: %v", arr)
+		return nil, nil, nil, fmt.Errorf("Expecting 4 arguments for %d", len(arr))
 	}
 	if len(users) != 2 {
 		return nil, nil, nil, errors.New("playerA, playerB and player won are all different")
@@ -75,4 +77,13 @@ func (b *Bot) GetPlayers(users []*discordgo.User, message string)(*discordgo.Use
 
 func (b *Bot) isBot(user *discordgo.User) bool {
 	return user.Bot
+}
+
+func (b *Bot) getLevelFromMessage(message string) string {
+	arr := strings.Split(message, " ")
+	if len(arr) < 3 {
+		return ""
+	} 
+
+	return arr[2]
 }

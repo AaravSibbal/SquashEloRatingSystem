@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS player(
     total_matches INT NOT NULL
 );
 
+ALTER TABLE player ADD discord_ID VARCHAR(20) UNIQUE NOT NULL;
+
 CREATE TABLE IF NOT EXISTS match(
     match_id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     player_a_ID UUID NOT NULL,

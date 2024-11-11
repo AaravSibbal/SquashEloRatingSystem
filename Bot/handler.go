@@ -9,7 +9,7 @@ import (
 )
 
 func (b *Bot) getHelpMessage() string {
-	return	`Commands: 
+	return `Commands: 
 
 - !addPlayer @player 
 (always mention the player as it will ensure that the name is always correct)
@@ -35,10 +35,10 @@ func (b *Bot) ping() string {
 	return "pong"
 }
 
-func (b *Bot) addPlayer(users []*discordgo.User) string {
+func (b *Bot) addPlayer(users []*discordgo.User, message string) string {
 
-	if len(users) != 2 {
-		return fmt.Sprintf("Error: expected 2 users got %d", len(users))
+	if len(users) != 1 {
+		return fmt.Sprintf("Error: expected 1 users got %d", len(users))
 	}
 
 	user := users[0]
@@ -46,15 +46,18 @@ func (b *Bot) addPlayer(users []*discordgo.User) string {
 		return "Error: Player can't be a bot"
 	}
 
-	fmt.Printf("adding player: %v", user.GlobalName) 
-	player := elo.Players.New(elo.Players{}, user.GlobalName)
+	fmt.Printf("adding player: %s, username: %s", user.ID, user.Username)
+
+	player := &elo.Player{}
+	player.New(user.ID, user.Username, b.getLevelFromMessage(message))
+	fmt.Printf("Player Name: %s\n", player.Name)
 	err := psql.InsertPlayer(b.Db, b.Ctx, player)
 
 	if err != nil {
 		return "there was an error adding the player, " + err.Error()
 	}
 
-	return fmt.Sprintf("Player: %s, was added successfully", user.GlobalName)
+	return fmt.Sprintf("Player: %s, was added successfully", user.Username)
 }
 
 func (b *Bot) addMatch(users []*discordgo.User, message string) string {
@@ -64,32 +67,45 @@ func (b *Bot) addMatch(users []*discordgo.User, message string) string {
 	}
 
 	tx, err := b.Db.BeginTx(*b.Ctx, nil)
-
 	if err != nil {
 		return "there was some trouble with the db try again later"
 	}
 
-	playerA, err := psql.GetPlayerWithTX(tx, b.Ctx, playerAUser.GlobalName)
+	playerA, err := psql.GetPlayer(b.Db, b.Ctx, playerAUser.ID)
 	if err != nil {
-		tx.Rollback()
-		return fmt.Sprintf("Player: %s, not found add them to the db first", playerAUser.GlobalName)
+		return fmt.Sprintf("Player: %s, not found add them to the db first", playerAUser.ID)
 	}
 
-	playerB, err := psql.GetPlayerWithTX(tx, b.Ctx, playerBUser.GlobalName)
+	playerB, err := psql.GetPlayer(b.Db, b.Ctx, playerBUser.ID)
 	if err != nil {
-		tx.Rollback()
-		return fmt.Sprintf("Player: %s, not found add them to the db first", playerBUser.GlobalName)
+		return fmt.Sprintf("Player: %s, not found add them to the db first", playerBUser.ID)
 	}
 
-	playerWon := b.GetPlayerWon(playerA, playerB, playerWonUser.GlobalName)
+	playerWon := b.GetPlayerWon(playerA, playerB, playerWonUser.Username)
 
-	match := elo.Matches.New(elo.Matches{}, playerA, playerB, playerWon)
+	match := &elo.Match{}
+	match.New(playerA, playerB, playerWon)
+	playerA.UpdatePlayer(match)
+	playerB.UpdatePlayer(match)
 
 	err = psql.InsertMatch(tx, b.Ctx, match)
 	if err != nil {
 		tx.Rollback()
+		fmt.Printf("error: %v", err)
 		return "Couldn't add match to the db, my bad lol..."
-	}		
+	}
+	err = psql.UpdatePlayerWithTx(tx, b.Ctx, playerA)
+	if err != nil {
+		tx.Rollback()
+		fmt.Printf("error: %v", err)
+		return fmt.Sprintf("Error: Couldn't update %s, match was not added", playerA.Name)
+	}
+	err = psql.UpdatePlayerWithTx(tx, b.Ctx, playerB)
+	if err != nil {
+		tx.Rollback()
+		fmt.Printf("error: %v", err)
+		return fmt.Sprintf("Error: Couldn't update %s, match was not added", playerB.Name)
+	}
 	tx.Commit()
 	return "Added the match successfully"
 }
@@ -105,7 +121,7 @@ func (b *Bot) stat(users []*discordgo.User) string {
 		resultStr += b.getPlayerStat(user)
 	}
 
-	return resultStr 
+	return resultStr
 }
 
 func (b *Bot) getPlayerStat(user *discordgo.User) string {
@@ -113,7 +129,7 @@ func (b *Bot) getPlayerStat(user *discordgo.User) string {
 		return "user is not defined\n"
 	}
 
-	player, err:= psql.GetPlayer(b.Db, b.Ctx, user.GlobalName)
+	player, err := psql.GetPlayer(b.Db, b.Ctx, user.ID)
 	if err != nil {
 		return fmt.Sprintf("There was some trouble getting %s from the db", player.Name)
 	}

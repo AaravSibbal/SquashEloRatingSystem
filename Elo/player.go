@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/google/uuid"
 )
 
 type Player struct {
-	Player_ID 	*uuid.UUID
+	Player_ID    string
+	Discord_ID   string
 	Name         string
 	EloRating    int
 	Wins         int
@@ -18,13 +18,14 @@ type Player struct {
 }
 
 func (player *Player) Equals(p *Player) bool {
-	result := strings.Compare(player.Name, p.Name)
+	result := strings.Compare(player.Discord_ID, p.Discord_ID)
 	return result == 0
 }
 
-func (player *Player) UpdatePlayer(match *Match){
-	result:= player.DidPlayerWin(match)
-
+func (player *Player) UpdatePlayer(match *Match) {
+	
+	result := player.DidPlayerWin(match)
+	player.EloRating = GetNewElo(player, match)
 	if result {
 		player.Wins++
 	} else {
@@ -38,50 +39,30 @@ func (player *Player) DidPlayerWin(match *Match) bool {
 }
 
 func (player *Player) String() string {
-	return fmt.Sprintf("Name: %s\nElo Rating: %d\nWins: %d\nLosses: %d\nTotal Matches: %d\n", 
-	player.Name, player.EloRating, player.Wins, player.Losses, player.TotalMatches)
+	return fmt.Sprintf("Name: %s\nElo Rating: %d\nWins: %d\nLosses: %d\nTotal Matches: %d\n",
+		player.Name, player.EloRating, player.Wins, player.Losses, player.TotalMatches)
 }
 
-type Players struct {
-	players map[string]*Player
-}
-
-func (pls Players) New(name string) *Player {
-	p := &Player{
-		Name:         name,
-		EloRating:    400,
-		Wins:         0,
-		Losses:       0,
-		Draws:        0,
-		TotalMatches: 0,
-	}
-	return p
-}
-
-func (pls *Players) AddPlayer(p *Player) bool {
-	_, exists := pls.players[p.Name]
-	if exists {
-		return false
+func (player *Player) StartingEloFromLevel(level string) int {
+	if level == ""{
+		return 400
+	} else if level == "1" {
+		return 400
+	} else if level == "2" {
+		return 500
+	} else if level == "3" {
+		return 600
 	}
 
-	pls.players[p.Name] = p
-	return true
+	return 400
 }
 
-func (pls *Players) RemovePlayer(name string) bool {
-	_, exists := pls.players[name]
-	if !exists {
-		return false
-	}
-
-	delete(pls.players, name)
-	return true
-}
-
-func (pls *Players) GetPlayer(name string) (*Player, bool) {
-	player, exists := pls.players[name]
-	if !exists {
-		return nil, false
-	}
-	return player, true
+func (player *Player) New(discordID, name, level string){
+	player.Name = name
+	player.Discord_ID = discordID
+	player.EloRating = player.StartingEloFromLevel(level)
+	player.Wins = 0
+	player.Losses = 0
+	player.Draws = 0
+	player.TotalMatches = 0
 }
